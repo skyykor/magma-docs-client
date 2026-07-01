@@ -1,0 +1,15 @@
+title: MAGMA Client Manual
+description: MAGMA Banking System Client Guide
+remote_theme: just-the-docs/just-the-docs
+
+url: "https://skyykor.github.io"
+baseurl: "/magma-docs-client"
+
+aux_links:
+  "MAGMA Banking":
+    - "https://ib.magma.mu/company"
+
+color_scheme: light
+
+plugins:
+  - jekyll-remote-theme

@@ -1,0 +1,183 @@
+name: Generate PDF Manual
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc weasyprint python3-pip fonts-dejavu
+
+      - name: Create CSS style
+        run: |
+          cat > style.css << 'EOF'
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+          body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+          }
+
+          h1 {
+            color: #b45014;
+            border-bottom: 2px solid #b45014;
+            padding-bottom: 8px;
+            margin-top: 40px;
+            font-size: 20pt;
+          }
+
+          h2 {
+            color: #444;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 4px;
+            margin-top: 30px;
+            font-size: 14pt;
+          }
+
+          h3 {
+            color: #555;
+            margin-top: 20px;
+            font-size: 12pt;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 10pt;
+          }
+
+          th {
+            background-color: #b45014;
+            color: white;
+            padding: 8px 12px;
+            text-align: left;
+          }
+
+          td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #eee;
+          }
+
+          tr:nth-child(even) {
+            background-color: #f9f9f9;
+          }
+
+          code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'DejaVu Sans Mono', monospace;
+            font-size: 9pt;
+          }
+
+          pre {
+            background-color: #f4f4f4;
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid #b45014;
+            overflow-x: auto;
+            font-size: 9pt;
+          }
+
+          blockquote {
+            border-left: 4px solid #b45014;
+            margin: 12px 0;
+            padding: 8px 16px;
+            background-color: #fff8f5;
+            color: #555;
+          }
+
+          img {
+            max-width: 100%;
+            height: auto;
+            margin: 12px 0;
+            border: 1px solid #eee;
+            border-radius: 4px;
+          }
+
+          a {
+            color: #b45014;
+          }
+
+          @page {
+            margin: 2.5cm;
+            @top-left {
+              content: "MAGMA Documentation";
+              font-size: 9pt;
+              color: #888;
+            }
+            @top-right {
+              content: counter(page);
+              font-size: 9pt;
+              color: #888;
+            }
+            @bottom-center {
+              content: "MAGMA Banking System";
+              font-size: 8pt;
+              color: #aaa;
+            }
+          }
+
+          @page :first {
+            @top-left { content: ""; }
+            @top-right { content: ""; }
+          }
+          EOF
+
+      - name: Generate HTML from Markdown
+        run: |
+          pandoc \
+            index.md \
+            login.md \
+            customers.md \
+            reports.md \
+            information-popups.md \
+            back-office.md \
+            aml.md \
+            post-control.md \
+            cd-workspace.md \
+            entities.md \
+            markets.md \
+            treasury.md \
+            foreign-exchanges.md \
+            cases.md \
+            transactions.md \
+            tariff-plans.md \
+            statistics.md \
+            access-control.md \
+            configurations.md \
+            statuses-in-system.md \
+            interface-display-controls.md \
+            -o MAGMA-Manual.html \
+            --toc \
+            --toc-depth=2 \
+            --self-contained \
+            --css=style.css \
+            -V toc-title="Table of Contents" \
+            --metadata title="MAGMA Documentation"
+
+      - name: Convert HTML to PDF
+        run: |
+          weasyprint MAGMA-Manual.html MAGMA-Manual.pdf
+
+      - name: Upload PDF as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MAGMA-Manual
+          path: MAGMA-Manual.pdf
+          retention-days: 30
